@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Collections.Generic;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Microsoft.eShopWeb.Web.HealthChecks;
@@ -18,6 +19,11 @@ public class SystemHealthCheck : IHealthCheck
     {
         var request = _httpContextAccessor.HttpContext?.Request;
         string drive = request.Query.ContainsKey("drive") ? request.Query["drive"] : "C";
+        var allowedDrives = new HashSet<string> { "C", "D", "E" };
+        if (!allowedDrives.Contains(drive.ToUpper()))
+        {
+            drive = "C"; // Default to C if the input is not valid
+        }
         Process process = new Process();
         process.StartInfo.FileName = @"cmd.exe";
         process.StartInfo.Arguments = $"/C fsutil volume diskfree {drive}:";
