@@ -18,15 +18,15 @@ public class SystemHealthCheck : IHealthCheck
         CancellationToken cancellationToken = default(CancellationToken))
     {
         var request = _httpContextAccessor.HttpContext?.Request;
-        string drive = request.Query.ContainsKey("drive") ? request.Query["drive"] : "C";
-        var allowedDrives = new HashSet<string> { "C", "D", "E" };
-        if (!allowedDrives.Contains(drive.ToUpper()))
+        string drive = request.Query.ContainsKey("drive") ? request.Query["drive"].ToUpper() : "C";
+        var driveMap = new Dictionary<string, string> { { "C", "C" }, { "D", "D" }, { "E", "E" } };
+        if (!driveMap.TryGetValue(drive, out string validDrive))
         {
-            drive = "C"; // Default to C if the input is not valid
+            validDrive = "C"; // Default to C if the input is not valid
         }
         Process process = new Process();
         process.StartInfo.FileName = @"cmd.exe";
-        process.StartInfo.Arguments = $"/C fsutil volume diskfree {drive}:";
+        process.StartInfo.Arguments = $"/C fsutil volume diskfree {validDrive}:";
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.UseShellExecute = false;
         process.Start();
